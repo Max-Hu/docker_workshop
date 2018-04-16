@@ -1,0 +1,42 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
+VAGRANTFILE_API_VERSION = "2"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+
+  config.vm.box = "ubuntu/xenial64"
+
+  config.vm.provider "virtualbox" do |v|
+    v.name = "docker-workspace"
+    v.memory = 512
+    v.cpus = 1
+  end
+
+  config.vm.box_check_update = true
+
+  #SSH
+  config.ssh.forward_agent = true
+
+  config.ssh.shell = "bash -c 'BASH_ENV=/etc/profile exec bash'"
+
+  #Provision scripts
+  config.vm.provision "shell",  inline: <<-SCRIPT
+    sudo apt update -y &&
+    curl -fsSL get.docker.com -o get-docker.sh &&
+    sudo sh get-docker.sh &&
+    sudo usermod -aG docker &&
+    docker --version &&
+    sudo curl -L https://github.com/docker/compose/releases/download/1.21.0/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose &&
+    sudo chmod +x /usr/local/bin/docker-compose &&
+    docker-compose --version &&
+    docker pull ubuntu &&
+    docker pull django &&
+    docker pull haproxy &&
+    docker pull redis &&
+    docker images &&
+    echo "all done !"
+  SCRIPT
+
+end
